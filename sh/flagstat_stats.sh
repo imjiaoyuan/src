@@ -1,10 +1,21 @@
 #!/bin/bash
-REPORT_DIR="/path"
+
+if [ -z "$1" ]; then
+    exit 1
+fi
+
+REPORT_DIR="$1"
+
+if [ ! -d "$REPORT_DIR" ]; then
+    exit 1
+fi
+
 printf "%-20s %-12s %-12s %-12s %-12s %-12s\n" \
        "Sample" "Total" "Mapped(%)" "Proper(%)" "Singletons(%)" "DiffChr(%)"
 echo "========================================================================"
 
 for file in ${REPORT_DIR}/*.flagstat.txt; do
+    [ -f "$file" ] || continue
     sample=$(basename "$file" .flagstat.txt)
     total=$(awk 'NR==1{print $1}' "$file")
     mapped_pct=$(grep "mapped (" "$file" | head -n 1 | grep -oP '\(\K[0-9.]+(?=%)')

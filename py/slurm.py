@@ -2,24 +2,18 @@
 import os, glob, sys
 from subprocess import call
 
-INPUT_DIR = "/home/xiejiaxiao/busco/fna"
-FILE_SUFFIX = ".fna"
-OUTPUT_DIR = "/home/xiejiaxiao/busco/fna/result"
-COMMAND_TEMPLATE = "busco -i ${INPUT_DIR}/${FILEID}.fna -l eukaryota_odb12 -o ${OUTPUT_DIR}/${FILEID}.fna -m genome "
-
-JOB_DIR = "./busco_jobs"
-LOG_DIR = "./busco_logs"
-SLURM_CPUS = "2"
-SLURM_MEM = "32"
-CONDA_ENV = "busco"
+INPUT_DIR = "/public/home/wangweiwei/MT_temp/juhua/atacrawdata"
+FILE_SUFFIX = ".bam"
+OUTPUT_DIR = "/public/home/wangweiwei/MT_temp/juhua/cleandata"
+COMMAND_TEMPLATE = "fastp -i ${INPUT_DIR}/${FILEID}_R1.fastq.gz -I ${INPUT_DIR}/${FILEID}_R2.fastq.gz -o ${OUTPUT_DIR}/${FILEID}_clean_R1.fastq.gz -O ${OUTPUT_DIR}/${FILEID}_clean_R2.fastq.gz --detect_adapter_for_pe -h ${OUTPUT_DIR}/${FILEID}.html -j ${OUTPUT_DIR}/${FILEID}.json"
+JOB_DIR = "/public/home/wangweiwei/MT_temp/juhua/jobs/fastp"
+LOG_DIR = "/public/home/wangweiwei/MT_temp/juhua/logs/fastp"
 
 def gen_commands():
     with open("commands.txt", "w") as f:
         for f_path in glob.glob(os.path.join(INPUT_DIR, f"*{FILE_SUFFIX}")):
             fileid = os.path.basename(f_path).replace(FILE_SUFFIX, "")
-            cmd = COMMAND_TEMPLATE.replace("${INPUT_DIR}", INPUT_DIR) \
-                                .replace("${FILEID}", fileid) \
-                                .replace("${OUTPUT_DIR}", OUTPUT_DIR)
+            cmd = COMMAND_TEMPLATE.replace("${INPUT_DIR}", INPUT_DIR).replace("${FILEID}", fileid).replace("${OUTPUT_DIR}", OUTPUT_DIR)
             f.write(cmd + "\n")
 
 def build_jobs():
@@ -31,14 +25,14 @@ def build_jobs():
         log_prefix = os.path.join(LOG_DIR, f"{fileid}")
         with open(job_file, "w") as f:
             f.write("#!/bin/sh\n")
-            f.write(f"#SBATCH -n 1 -c {SLURM_CPUS} --mem={SLURM_MEM}g\n")
+            f.write("#SBATCH -n 1 -c 2 --mem=32g\n")
             f.write(f"#SBATCH -e {log_prefix}.err\n")
+            f.write(f"#SBATCH -o {log_prefix}.out\n")
             f.write(f"#SBATCH -D {os.getcwd()}\n\n")
-            f.write("source ~/miniforge3/etc/profile.d/conda.sh\n")
-            f.write(f"conda activate {CONDA_ENV}\n\n")
-            cmd = COMMAND_TEMPLATE.replace("${INPUT_DIR}", INPUT_DIR) \
-                                .replace("${FILEID}", fileid) \
-                                .replace("${OUTPUT_DIR}", OUTPUT_DIR)
+            f.write("set -e\n")
+            f.write("source ~/software/miniconda3/bin/activate\n")
+            f.write("conda activate mt\n\n")
+            cmd = COMMAND_TEMPLATE.replace("${INPUT_DIR}", INPUT_DIR).replace("${FILEID}", fileid).replace("${OUTPUT_DIR}", OUTPUT_DIR)
             f.write(cmd + "\n")
 
 def submit_jobs():

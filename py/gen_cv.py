@@ -1,50 +1,95 @@
-from markdown import markdown
+#!/usr/bin/env python3
+import markdown
 import jinja2
 from pathlib import Path
 import re
+import argparse
 
-def read_markdown_file(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return f.read()
-
-def read_template_file(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        return f.read()
+HTML_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CV</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5cm 1cm;
+        }
+        body {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+            font-size: 11.5pt;
+            line-height: 1.3;
+            color: #333;
+            max-width: 21cm;
+            margin: 0 auto;
+            padding: 0.5cm;
+        }
+        * {
+            font-family: "Noto Sans CJK SC", "Microsoft YaHei", Consolas, sans-serif;
+        }
+        h3 {
+            color: #000;
+            font-weight: bold;
+            font-size: 1.2em;
+            margin: 4px 0 4px 0;
+            padding-bottom: 2px;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #000;
+            margin: -4px 0;
+        }
+        strong, b {
+            color: #000;
+            font-weight: bold;
+        }
+        p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+    {{ content }}
+</body>
+</html>
+"""
 
 def convert_markdown_to_html(md_content):
     md_content = re.sub(r'^(\s{2,})(?=\S)', lambda m: '    ' * (len(m.group(1)) // 2), md_content, flags=re.MULTILINE)
     md_content = re.sub(r'<!--.*?-->', '', md_content, flags=re.DOTALL)
-    
     extensions = ['extra', 'tables']
-    html_content = markdown(md_content, extensions=extensions)
-    
+    html_content = markdown.markdown(md_content, extensions=extensions)
     html_content = html_content.replace('<hr>', '<hr style="border: none; border-top: 1px solid #000000; margin: 6px 0;">')
     bold_style = 'style="color: #000000; font-weight: 900; letter-spacing: 0.02em;"'
     html_content = html_content.replace('<strong>', f'<strong {bold_style}>')
-    
-    html_content = f'<div style="font-size: 0.9em;">{html_content}</div>'
-    
-    return html_content
+    return f'<div style="font-size: 0.9em;">{html_content}</div>'
 
-def generate_html(md_file_path, output_path, template_path):
-    html_content = convert_markdown_to_html(read_markdown_file(md_file_path))
-    template = jinja2.Template(read_template_file(template_path))
+def generate_html(md_file_path, output_path):
+    md_content = Path(md_file_path).read_text(encoding='utf-8')
+    html_content = convert_markdown_to_html(md_content)
+    template = jinja2.Template(HTML_TEMPLATE)
     html_output = template.render(content=html_content)
-
-    html_path = Path(output_path).with_suffix('.html')
+    
+    html_path = Path(output_path)
     html_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(html_path, 'w', encoding='utf-8') as f:
-        f.write(html_output)
-    print(f"HTML生成成功: {html_path}")
+    html_path.write_text(html_output, encoding='utf-8')
+    print(f"Successfully generated: {html_path}")
 
 if __name__ == '__main__':
-    cv_dir = '/home/jy/work/src/cv'
-    input_file = f'{cv_dir}/cv.md'
-    output_file = f'{cv_dir}/cv.html'
-    template_file = f'{cv_dir}/template.html'
+    parser = argparse.ArgumentParser(description="Convert a Markdown file to a styled HTML file.")
+    parser.add_argument('-i', '--input', required=True, help='Input Markdown file path.')
+    parser.add_argument('-o', '--output', help='Output HTML file path. If not provided, it defaults to the same name as the input file with an .html extension.')
+    args = parser.parse_args()
     
-    generate_html(
-        md_file_path=input_file,
-        output_path=output_file,
-        template_path=template_file
-    )
+    input_file = Path(args.input)
+    if not input_file.is_file():
+        print(f"Error: File not found: {input_file}")
+        exit(1)
+        
+    if args.output:
+        output_file = Path(args.output)
+    else:
+        output_file = input_file.with_suffix('.html')
+        
+    generate_html(input_file, output_file)
