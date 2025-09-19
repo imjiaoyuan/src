@@ -2,12 +2,12 @@
 import os, glob, sys
 from subprocess import call
 
-INPUT_DIR = "/public/home/wangweiwei/MT_temp/juhua/atacrawdata"
-FILE_SUFFIX = ".bam"
-OUTPUT_DIR = "/public/home/wangweiwei/MT_temp/juhua/cleandata"
-COMMAND_TEMPLATE = "fastp -i ${INPUT_DIR}/${FILEID}_R1.fastq.gz -I ${INPUT_DIR}/${FILEID}_R2.fastq.gz -o ${OUTPUT_DIR}/${FILEID}_clean_R1.fastq.gz -O ${OUTPUT_DIR}/${FILEID}_clean_R2.fastq.gz --detect_adapter_for_pe -h ${OUTPUT_DIR}/${FILEID}.html -j ${OUTPUT_DIR}/${FILEID}.json"
-JOB_DIR = "/public/home/wangweiwei/MT_temp/juhua/jobs/fastp"
-LOG_DIR = "/public/home/wangweiwei/MT_temp/juhua/logs/fastp"
+INPUT_DIR = "/public/home/wangweiwei/MT_temp/shuilian/atacrawdata"
+FILE_SUFFIX = ".fastq.gz"
+OUTPUT_DIR = "/public/home/wangweiwei/MT_temp/shuilian/report"
+COMMAND_TEMPLATE = "fastqc -t 8 ${INPUT_DIR}/${FILEID}.fastq.gz -o ${OUTPUT_DIR}/${FILEID}"
+JOB_DIR = "/public/home/wangweiwei/MT_temp/shuilian/jobs/fastqc"
+LOG_DIR = "/public/home/wangweiwei/MT_temp/shuilian/logs/fastqc"
 
 def gen_commands():
     with open("commands.txt", "w") as f:
@@ -25,7 +25,7 @@ def build_jobs():
         log_prefix = os.path.join(LOG_DIR, f"{fileid}")
         with open(job_file, "w") as f:
             f.write("#!/bin/sh\n")
-            f.write("#SBATCH -n 1 -c 2 --mem=32g\n")
+            f.write("#SBATCH -n 1 -c 8 --mem=32g\n")
             f.write(f"#SBATCH -e {log_prefix}.err\n")
             f.write(f"#SBATCH -o {log_prefix}.out\n")
             f.write(f"#SBATCH -D {os.getcwd()}\n\n")

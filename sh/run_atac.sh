@@ -1,3 +1,5 @@
+fastqc -t 8 ${INPUT_DIR}/${FILEID}.fastq.gz -o ${OUTPUT_DIR}/${FILEID}
+
 # Perform quality control and trimming of raw FASTQ data.
 fastp -i ${INPUT_DIR}/${FILEID}_R1.fastq.gz -I ${INPUT_DIR}/${FILEID}_R2.fastq.gz -o ${OUTPUT_DIR}/${FILEID}_clean_R1.fastq.gz -O ${OUTPUT_DIR}/${FILEID}_clean_R2.fastq.gz --detect_adapter_for_pe -h ${OUTPUT_DIR}/${FILEID}.html -j ${OUTPUT_DIR}/${FILEID}.json
 
@@ -86,3 +88,21 @@ plotProfile \
 
 # Find enriched motifs within peak regions using HOMER.
 findMotifsGenome.pl ${INPUT_DIR}/${FILEID}.narrowPeak /public/home/wangweiwei/MT_temp/shuilian/转录组分析结果及参考基因组注释文件-HM250630DDY01+广西农业科学院9例植物组织ATAC-seq测序分析/ref/HiC.review.assembly.chr.genome.fa ${OUTPUT_DIR}/${FILEID} -size 200 -p 8
+
+
+cd /public/home/wangweiwei/MT_temp/shuilian/bamfiles
+
+featureCounts -T 8 \
+              -p \
+              -F SAF \
+              -a consensus_peaks.saf \
+              -o counts_matrix.txt \
+              VL0-1_S99_clean.bam \
+              VL0-2_S99_clean.bam \
+              VL0-3_S99_clean.bam \
+              VL1-1_S99_clean.bam \
+              VL1-2_S99_clean.bam \
+              VL1-3_S99_clean.bam \
+              VL2-1_S99_clean.bam \
+              VL2-2_S99_clean.bam \
+              VL2-3_S99_clean.bam
