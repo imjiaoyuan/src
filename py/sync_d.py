@@ -77,6 +77,18 @@ if __name__ == "__main__":
             "to": "/mnt/d/BACKUP/JiaoYuan/.wslconfig"
         },
         {
+            "from": "/mnt/c/User/JiaoYuan/Desktop/MISC/CV.pdf",
+            "to": "/mnt/d/BACKUP/JiaoYuan/Desktop/MISC/CV.pdf"
+        },
+        {
+            "from": "/mnt/c/Scoop/apps/rclone/current/rclone.conf",
+            "to": "/mnt/d/BACKUP/Scoop/apps/rclone/rclone.conf"
+        },
+        {
+            "from": "/mnt/c/Scoop/apps/vscode/current/data/user-data/User/settings.json",
+            "to": "/mnt/d/BACKUP/Scoop/apps/vscode/current/data/user-data/User/settings.json"
+        },
+        {
             "from": "/home/jy/.bashrc",
             "to": "/mnt/d/BACKUP/jy/.bashrc"
         },
@@ -91,6 +103,14 @@ if __name__ == "__main__":
         {
             "from": "/home/jy/.condarc",
             "to": "/mnt/d/BACKUP/jy/.condarc"
+        },
+        {
+            "from": "/home/jy/.Rprofile",
+            "to": "/mnt/d/BACKUP/jy/.Rprofile"
+        },
+        {
+            "from": "/home/jy/.npmrc",
+            "to": "/mnt/d/BACKUP/jy/.npmrc"
         },
         {
             "from": "/home/jy/.config/rclone",
