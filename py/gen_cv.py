@@ -3,7 +3,7 @@ import markdown
 import jinja2
 from pathlib import Path
 import re
-import argparse
+import sys
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
@@ -69,27 +69,4 @@ def generate_html(md_file_path, output_path):
     md_content = Path(md_file_path).read_text(encoding='utf-8')
     html_content = convert_markdown_to_html(md_content)
     template = jinja2.Template(HTML_TEMPLATE)
-    html_output = template.render(content=html_content)
-    
-    html_path = Path(output_path)
-    html_path.parent.mkdir(parents=True, exist_ok=True)
-    html_path.write_text(html_output, encoding='utf-8')
-    print(f"Successfully generated: {html_path}")
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Convert a Markdown file to a styled HTML file.")
-    parser.add_argument('-i', '--input', required=True, help='Input Markdown file path.')
-    parser.add_argument('-o', '--output', help='Output HTML file path. If not provided, it defaults to the same name as the input file with an .html extension.')
-    args = parser.parse_args()
-    
-    input_file = Path(args.input)
-    if not input_file.is_file():
-        print(f"Error: File not found: {input_file}")
-        exit(1)
-        
-    if args.output:
-        output_file = Path(args.output)
-    else:
-        output_file = input_file.with_suffix('.html')
-        
-    generate_html(input_file, output_file)
+    html_output = template.ren

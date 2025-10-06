@@ -1,3 +1,4 @@
+# Perform initial quality control on raw FASTQ data.
 fastqc -t 8 ${INPUT_DIR}/${FILEID}.fastq.gz -o ${OUTPUT_DIR}/${FILEID}
 
 # Perform quality control and trimming of raw FASTQ data.
@@ -90,8 +91,8 @@ plotProfile \
 findMotifsGenome.pl ${INPUT_DIR}/${FILEID}.narrowPeak /public/home/wangweiwei/MT_temp/shuilian/转录组分析结果及参考基因组注释文件-HM250630DDY01+广西农业科学院9例植物组织ATAC-seq测序分析/ref/HiC.review.assembly.chr.genome.fa ${OUTPUT_DIR}/${FILEID} -size 200 -p 8
 
 
+# Count reads in consensus peak regions for all samples.
 cd /public/home/wangweiwei/MT_temp/shuilian/bamfiles
-
 featureCounts -T 8 \
               -p \
               -F SAF \
