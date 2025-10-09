@@ -2,6 +2,8 @@ import os
 import shutil
 import datetime
 import filecmp
+import argparse
+import sys
 
 def sync_path(from_path, to_path):
     changes = []
@@ -49,85 +51,73 @@ def sync_path(from_path, to_path):
             dest_subdir = os.path.join(dest_dir, dir_)
             src_subdir = dest_subdir.replace(to_path, from_path, 1)
             if not os.path.exists(src_subdir):
-                shutil.rmtree(dest_subdir)
-                changes.append(f"DELETED DIR: {dest_subdir}")
-                
+                try:
+                    shutil.rmtree(dest_subdir)
+                    changes.append(f"DELETED DIR: {dest_subdir}")
+                except OSError as e:
+                    print(f"INFO: Could not remove {dest_subdir}, it may have been already deleted. Error: {e}")
     return changes
 
 if __name__ == "__main__":
-    backup_paths = [
-        {
-            "from": "/mnt/c/Users/JiaoYuan/Documents/NetSarang Computer",
-            "to": "/mnt/d/BACKUP/JiaoYuan/Documents/NetSarang Computer"
-        },
-        {
-            "from": "/mnt/c/Users/JiaoYuan/Documents/My Games",
-            "to": "/mnt/d/BACKUP/JiaoYuan/Documents/My Games"
-        },
-        {
-            "from": "/mnt/c/Users/JiaoYuan/Pictures",
-            "to": "/mnt/d/BACKUP/JiaoYuan/Pictures"
-        },
-        {
-            "from": "/mnt/c/Users/JiaoYuan/.ssh",
-            "to": "/mnt/d/BACKUP/JiaoYuan/.ssh"
-        },
-        {
-            "from": "/mnt/c/Users/JiaoYuan/.wslconfig",
-            "to": "/mnt/d/BACKUP/JiaoYuan/.wslconfig"
-        },
-        {
-            "from": "/mnt/c/User/JiaoYuan/Desktop/MISC/CV.pdf",
-            "to": "/mnt/d/BACKUP/JiaoYuan/Desktop/MISC/CV.pdf"
-        },
-        {
-            "from": "/mnt/c/Scoop/apps/rclone/current/rclone.conf",
-            "to": "/mnt/d/BACKUP/Scoop/apps/rclone/rclone.conf"
-        },
-        {
-            "from": "/mnt/c/Scoop/apps/vscode/current/data/user-data/User/settings.json",
-            "to": "/mnt/d/BACKUP/Scoop/apps/vscode/current/data/user-data/User/settings.json"
-        },
-        {
-            "from": "/home/jy/.bashrc",
-            "to": "/mnt/d/BACKUP/jy/.bashrc"
-        },
-        {
-            "from": "/home/jy/.gitconfig",
-            "to": "/mnt/d/BACKUP/jy/.gitconfig"
-        },
-        {
-            "from": "/home/jy/.git-credentials",
-            "to": "/mnt/d/BACKUP/jy/.git-credentials"
-        },
-        {
-            "from": "/home/jy/.condarc",
-            "to": "/mnt/d/BACKUP/jy/.condarc"
-        },
-        {
-            "from": "/home/jy/.Rprofile",
-            "to": "/mnt/d/BACKUP/jy/.Rprofile"
-        },
-        {
-            "from": "/home/jy/.npmrc",
-            "to": "/mnt/d/BACKUP/jy/.npmrc"
-        },
-        {
-            "from": "/home/jy/.config/rclone",
-            "to": "/mnt/d/BACKUP/jy/.config/rclone"
-        },
-        {
-            "from": "/home/jy/work/2fa",
-            "to": "/mnt/d/BACKUP/jy/work/2fa"
-        }
+    parser = argparse.ArgumentParser(
+        description="A script to synchronize files between source and destination.",
+        epilog="Example usage: python your_script_name.py -b"
+    )
+    mode_group = parser.add_mutually_exclusive_group(required=True)
+    mode_group.add_argument(
+        "-b", "--backup", 
+        action="store_true", 
+        help="Run in BACKUP mode: Syncs from original location to backup location."
+    )
+    mode_group.add_argument(
+        "-r", "--restore", 
+        action="store_true", 
+        help="Run in RESTORE mode: Syncs from backup location to original location. USE WITH CAUTION!"
+    )
+    args = parser.parse_args()
+
+    path_map = [
+        {"original": "/mnt/c/Users/JiaoYuan/Documents/NetSarang Computer", "backup": "/mnt/d/BACKUP/JiaoYuan/Documents/NetSarang Computer"},
+        {"original": "/mnt/c/Users/JiaoYuan/Documents/My Games", "backup": "/mnt/d/BACKUP/JiaoYuan/Documents/My Games"},
+        {"original": "/mnt/c/Users/JiaoYuan/Pictures", "backup": "/mnt/d/BACKUP/JiaoYuan/Pictures"},
+        {"original": "/mnt/c/Users/JiaoYuan/.ssh", "backup": "/mnt/d/BACKUP/JiaoYuan/.ssh"},
+        {"original": "/mnt/c/Users/JiaoYuan/.wslconfig", "backup": "/mnt/d/BACKUP/JiaoYuan/.wslconfig"},
+        {"original": "/mnt/c/User/JiaoYuan/Desktop/MISC/CV.pdf", "backup": "/mnt/d/BACKUP/JiaoYuan/Desktop/MISC/CV.pdf"},
+        {"original": "/mnt/c/Scoop/apps/rclone/current/rclone.conf", "backup": "/mnt/d/BACKUP/Scoop/apps/rclone/rclone.conf"},
+        {"original": "/mnt/c/Scoop/apps/vscode/current/data/user-data/User/settings.json", "backup": "/mnt/d/BACKUP/Scoop/apps/vscode/current/data/user-data/User/settings.json"},
+        {"original": "/home/jy/.bashrc", "backup": "/mnt/d/BACKUP/jy/.bashrc"},
+        {"original": "/home/jy/.gitconfig", "backup": "/mnt/d/BACKUP/jy/.gitconfig"},
+        {"original": "/home/jy/.git-credentials", "backup": "/mnt/d/BACKUP/jy/.git-credentials"},
+        {"original": "/home/jy/.condarc", "backup": "/mnt/d/BACKUP/jy/.condarc"},
+        {"original": "/home/jy/.Rprofile", "backup": "/mnt/d/BACKUP/jy/.Rprofile"},
+        {"original": "/home/jy/.npmrc", "backup": "/mnt/d/BACKUP/jy/.npmrc"},
+        {"original": "/home/jy/.config/rclone", "backup": "/mnt/d/BACKUP/jy/.config/rclone"},
+        {"original": "/home/jy/work/2fa", "backup": "/mnt/d/BACKUP/jy/work/2fa"},
     ]
+    
+    mode = "BACKUP" if args.backup else "RESTORE"
 
-    print(f"Backup started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"{mode} process started at {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+    if mode == "RESTORE":
+        print("\n" + "="*60)
+        print("!! WARNING: YOU ARE IN RESTORE MODE !!")
+        print("This will OVERWRITE files in their original locations using the backup copies.")
+        print("Any changes made to original files since the last backup will be LOST.")
+        print("="*60 + "\n")
+        confirm = input("Are you absolutely sure you want to continue? (yes/no): ")
+        if confirm.lower() != 'yes':
+            print("Restore operation cancelled by user.")
+            sys.exit(0)
+
     total_changes = 0
-
-    for paths in backup_paths:
-        from_path = paths["from"]
-        to_path = paths["to"]
+    for paths in path_map:
+        if mode == "BACKUP":
+            from_path = paths["original"]
+            to_path = paths["backup"]
+        else:
+            from_path = paths["backup"]
+            to_path = paths["original"]
 
         if not os.path.exists(from_path):
             print(f"WARNING: Source path does not exist, skipping: {from_path}")
@@ -137,11 +127,10 @@ if __name__ == "__main__":
             changes_made = sync_path(from_path, to_path)
             if changes_made:
                 total_changes += len(changes_made)
-                print(f"\n[SYNC] '{from_path}' -> '{to_path}'")
+                print(f"\n[{mode}] '{from_path}' -> '{to_path}'")
                 for change in changes_made:
                     print(f"  - {change}")
         except Exception as e:
             print(f"ERROR: A critical error occurred while syncing '{from_path}': {e}")
 
-
-    print(f"\nBackup finished. Total changes: {total_changes}")
+    print(f"\n{mode} process finished. Total changes: {total_changes}")
